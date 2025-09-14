@@ -9,18 +9,16 @@ export class UserController extends BaseApiClient {
   }
 
   async create(userInfo: User) {
-    const response = await this.request.post(this.baseURL, {
+    return await this.request.post(this.baseURL, {
       data: { user: userInfo },
     });
-    return response;
   }
 
   async login(userInfo: User) {
-    const response = await this.request.post(`${this.baseURL}/login`, {
+    return this.request.post(`${this.baseURL}/login`, {
       data: {
         user: userInfo,
       },
     });
-    return response;
   }
 }

@@ -1,3 +1,5 @@
+import { UserController } from "@/utils/controllers/user.controller";
+
 export type Article = {
   slug?: string;
   title: string;
@@ -20,3 +22,5 @@ export type User = {
   token?: string;
   password?: string;
 }
+
+

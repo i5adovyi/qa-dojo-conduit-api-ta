@@ -1,7 +1,8 @@
 import { userInfo } from '@/data/user.data';
 import { User } from '@/types/types';
 import { expect, test } from '@playwright/test';
-import { UserController } from '../utils/controllers/user.controller';
+import { UserController } from '../../utils/controllers/user.controller';
+import { loggedUser } from '@/fixtures/fixtures';
 const data: User = userInfo();
 
 test.describe.serial('Auth', () => {
