@@ -5,8 +5,6 @@ export const articlePayload = () => {
     body: faker.lorem.words(20),
     description: faker.lorem.words(5),
     title: faker.lorem.words(3),
-    tags: Array.from({ length: 3 }, () => {
-      faker.lorem.word();
-    }),
+    tagList: Array.from({ length: 3 }, () => faker.lorem.word()),
   };
 };

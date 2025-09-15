@@ -5,10 +5,7 @@ import { test as base } from '@playwright/test';
 import { UserController } from '../utils/controllers/user.controller';
 
 export type UserFixture = {
-  userController: UserController;
-  userInfo: User;
   token: string;
-  articleTest: any;
   article: ArticleController;
 };
 
@@ -20,8 +17,7 @@ export const test = base.extend<UserFixture>({
     const token = (await response.json()).user.token;
     await use(token);
   },
-  article: async ({ request }, use) => {
-    let article = new ArticleController(request);
-    await use(article);
+  article: async ({ request, token }, use) => {
+    await use(new ArticleController(request, token));
   },
 });
