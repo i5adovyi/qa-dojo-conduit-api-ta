@@ -1,5 +1,3 @@
-import { UserController } from "@/utils/controllers/user.controller";
-
 export type Article = {
   slug?: string;
   title: string;
@@ -21,6 +19,4 @@ export type User = {
   image?: string;
   token?: string;
   password?: string;
-}
-
-
+};

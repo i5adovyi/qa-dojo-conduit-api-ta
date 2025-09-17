@@ -31,7 +31,7 @@ export class ArticleController extends BaseApiClient {
     return this.authPut(
       `${this.baseURL}/${slug}`,
       { article: articleData },
-      authToken
+      authToken3
     );
   }
 
