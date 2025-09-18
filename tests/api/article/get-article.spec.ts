@@ -6,10 +6,19 @@ import { APIResponse, expect } from '@playwright/test';
 test.describe('Get Article API', () => {
   let createdArticle: Article;
   let slug: string;
-  let resp: APIResponse
+  let resp: APIResponse;
+  let authorUsername: string;
 
-  test.beforeEach(async ({ article }) => {
-    resp = await article.create(validArticle());
+  test.beforeAll(async ({ article, user }) => {
+    const userResponse = await user.getUserInfo();
+
+    const userData = await userResponse.json();
+    authorUsername = userData.user.username;
+    resp = await article.create(
+      validArticle({
+        tagList: ['qaDojo', 'bestcourseever', 'yolo'],
+      })
+    );
     slug = (await resp.json()).article.slug as string;
   });
 
@@ -28,7 +37,6 @@ test.describe('Get Article API', () => {
     }
   );
 
-
   test(
     'LWIO-030: Non-existent article returns 404',
     {
@@ -44,7 +52,7 @@ test.describe('Get Article API', () => {
     }
   );
 
-    test(
+  test(
     'LWIO-028: Get list of all articles returns 200',
     {
       tag: ['@smoke', '@regression', '@positive'],
@@ -54,7 +62,35 @@ test.describe('Get Article API', () => {
 
       expect(response.status()).toBe(200);
       const responseBody = await response.json();
-      expect
+      expect(responseBody.articles).toBeDefined();
+    }
+  );
+
+  test(
+    'LWIO-032: Filter articles by current author',
+    {
+      tag: ['@smoke', '@regression', '@positive'],
+    },
+    async ({ article }) => {
+      const response = await article.getList({ author: authorUsername });
+
+      expect(response.status()).toBe(200);
+      const responseBody = await response.json();
+      expect(responseBody.articles[0].author.username).toEqual(authorUsername);
+    }
+  );
+
+  test(
+    'LWIO-033: Filter articles by tag',
+    {
+      tag: ['@smoke', '@regression', '@positive'],
+    },
+    async ({ article }) => {
+      const response = await article.getList({ tag: 'yolo' });
+
+      expect(response.status()).toBe(200);
+      const responseBody = await response.json();
+      expect(responseBody.articles[0].tagList[0]).toBe('qaDojo');
     }
   );
 });

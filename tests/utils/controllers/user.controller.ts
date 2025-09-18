@@ -4,8 +4,11 @@ import { BaseApiClient } from '../base-client';
 
 export class UserController extends BaseApiClient {
   baseURL: string;
-  constructor(request: APIRequestContext) {
-    (super(request), (this.baseURL = 'users'));
+  private token?: string;
+  constructor(request: APIRequestContext, token?: string) {
+    super(request);
+    this.baseURL = 'users';
+    this.token = token;
   }
 
   async create(userInfo: User) {
@@ -20,5 +23,11 @@ export class UserController extends BaseApiClient {
         user: userInfo,
       },
     });
+  }
+
+  async getUserInfo() {
+    const authToken = this.token;
+    if (!authToken) throw new Error('Token required');
+    return this.authGet('user/', authToken);
   }
 }

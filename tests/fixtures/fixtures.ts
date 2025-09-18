@@ -11,6 +11,7 @@ import { UserController } from '../utils/controllers/user.controller';
 export type UserFixture = {
   token: string;
   article: ArticleController;
+  user: UserController;
 };
 
 export const test = base.extend<UserFixture>({
@@ -36,5 +37,9 @@ export const test = base.extend<UserFixture>({
 
   article: async ({ request, token }, use) => {
     await use(new ArticleController(request, token));
+  },
+
+  user: async ({ request, token }, use) => {
+    await use(new UserController(request, token));
   },
 });
