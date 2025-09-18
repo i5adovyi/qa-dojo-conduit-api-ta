@@ -37,7 +37,6 @@ NEGATIVE CASES:
 DELETE ARTICLE:
 
 - LWIO-025: Delete own article returns 204
-- LWIO-026: Delete other user's article returns 403
 - LWIO-027: Delete non-existent article returns 404
 
 READ ARTICLE:
@@ -45,7 +44,6 @@ READ ARTICLE:
 - LWIO-028: Get list of all articles returns 200
 - LWIO-029: Get existing article returns 200
 - LWIO-030: Non-existent article returns 404
-- LWIO-031: Public access works (no auth needed)
 
 SEARCH ARTICLE:
 

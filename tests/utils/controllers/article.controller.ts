@@ -41,11 +41,25 @@ export class ArticleController extends BaseApiClient {
     return this.authDelete(`${this.baseURL}/${slug}`, authToken);
   }
 
-  async getAll() {
-    const authToken = this.token;
-    if (authToken) {
-      return this.authGet(this.baseURL, authToken);
-    }
-    return this.request.get(this.baseURL);
+  async getList(
+    options: {
+      offset?: number;
+      limit?: number;
+      author?: string;
+      tag?: string;
+      favorited?: string;
+    } = {}
+  ) {
+    const params: any = {};
+
+    if (options.offset !== undefined) params.offset = options.offset;
+    if (options.limit !== undefined) params.limit = options.limit;
+    if (options.author) params.author = options.author;
+    if (options.tag) params.tag = options.tag;
+    if (options.favorited) params.favorited = options.favorited;
+
+    return await this.request.get(this.baseURL, {
+      params,
+    });
   }
 }
