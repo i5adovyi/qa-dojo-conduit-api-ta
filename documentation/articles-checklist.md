@@ -4,12 +4,13 @@ ARTICLE CREATION
 POSITIVE CASES:
 
 - LWIO-003: Create article with all required fields
-- LWIO-004: Create article with empty description 
-- LWIO-005: Create article with empty tagList 
+- LWIO-004: Create article with empty description
+- LWIO-005: Create article with empty tagList
 - LWIO-006: Create article with empty title
 - LWIO-007: Create article with empty body
 
 NEGATIVE CASES:
+
 - LWIO-008: Missing title returns 422
 - LWIO-009: Missing description returns 422
 - LWIO-010: Missing body returns 422
@@ -49,3 +50,9 @@ SEARCH ARTICLE:
 
 - LWIO-032: Filter articles by author
 - LWIO-033: Filter articles by tag
+- LWIO-034: Filter articles by tag and autor
+
+FAVOURITE ARTICLE
+
+- LWIO-035: Add article to favourites
+- LWIO-036: Remove article from favourites

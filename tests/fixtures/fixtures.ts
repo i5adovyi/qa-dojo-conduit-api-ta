@@ -1,5 +1,6 @@
 import { userInfo } from '@/data/user.data';
 import { ArticleController } from '@/utils/controllers/article.controller';
+import { FavoriteController } from '@/utils/controllers/favorite.controller';
 import {
   getToken,
   isTokenValid,
@@ -12,6 +13,7 @@ export type UserFixture = {
   token: string;
   article: ArticleController;
   user: UserController;
+  favourite: FavoriteController;
 };
 
 export const test = base.extend<UserFixture>({
@@ -41,5 +43,9 @@ export const test = base.extend<UserFixture>({
 
   user: async ({ request, token }, use) => {
     await use(new UserController(request, token));
+  },
+
+  favourite: async ({ request, token }, use) => {
+    await use(new FavoriteController(request, token));
   },
 });

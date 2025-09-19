@@ -1,10 +1,8 @@
 import { validArticle } from '@/data/article.data';
 import { test } from '@/fixtures/fixtures';
-import { Article } from '@/types/types';
 import { APIResponse, expect } from '@playwright/test';
 
 test.describe('Get Article API', () => {
-  let createdArticle: Article;
   let slug: string;
   let resp: APIResponse;
   let authorUsername: string;
@@ -16,7 +14,7 @@ test.describe('Get Article API', () => {
     authorUsername = userData.user.username;
     resp = await article.create(
       validArticle({
-        tagList: ['qaDojo', 'bestcourseever', 'yolo'],
+        tagList: ['yolo'],
       })
     );
     slug = (await resp.json()).article.slug as string;
@@ -90,7 +88,27 @@ test.describe('Get Article API', () => {
 
       expect(response.status()).toBe(200);
       const responseBody = await response.json();
-      expect(responseBody.articles[0].tagList[0]).toBe('qaDojo');
+      expect(responseBody).toHaveProperty('articles');
+      expect(responseBody.articles[0].tagList[0]).toBe('yolo');
+    }
+  );
+
+  test(
+    'LWIO-034: Filter articles by tag and autor',
+    {
+      tag: ['@smoke', '@regression', '@positive'],
+    },
+    async ({ article }) => {
+      const response = await article.getList({
+        tag: 'yolo',
+        author: authorUsername,
+      });
+
+      expect(response.status()).toBe(200);
+      const responseBody = await response.json();
+      expect(responseBody).toHaveProperty('articles');
+      expect(responseBody.articles[0].author.username).toEqual(authorUsername);
+      expect(responseBody.articles[0].tagList[0]).toBe('yolo');
     }
   );
 });
