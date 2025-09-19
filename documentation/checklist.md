@@ -56,3 +56,9 @@ FAVOURITE ARTICLE
 
 - LWIO-035: Add article to favourites
 - LWIO-036: Remove article from favourites
+
+COMMENTS:
+- LWIO-037: Add comment to own article
+- LWIO-038: Delete own comment
+- LWIO-039: Delete guests comment return error
+- LWIO-040: Delete not existing comment return error

@@ -1,12 +1,13 @@
 import { userInfo } from '@/data/user.data';
 import { ArticleController } from '@/utils/controllers/article.controller';
+import { CommentController } from '@/utils/controllers/comment.controller';
 import { FavoriteController } from '@/utils/controllers/favorite.controller';
 import {
   getToken,
   isTokenValid,
   saveToken,
 } from '@/utils/helpers/token-manager';
-import { test as base } from '@playwright/test';
+import { test as base, request } from '@playwright/test';
 import { UserController } from '../utils/controllers/user.controller';
 
 export type UserFixture = {
@@ -14,6 +15,7 @@ export type UserFixture = {
   article: ArticleController;
   user: UserController;
   favourite: FavoriteController;
+  comment: CommentController;
 };
 
 export const test = base.extend<UserFixture>({
@@ -48,4 +50,8 @@ export const test = base.extend<UserFixture>({
   favourite: async ({ request, token }, use) => {
     await use(new FavoriteController(request, token));
   },
+
+  comment: async ({ request, token }, use) => {
+    await use(new CommentController(request, token));
+  }
 });

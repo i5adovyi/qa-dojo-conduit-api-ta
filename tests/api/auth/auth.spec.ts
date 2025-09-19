@@ -6,9 +6,6 @@ const data: User = userInfo();
 
 test.describe.serial('Auth', () => {
   let user: UserController;
-  // test.beforeAll(async () => {
-  //   data = userInfo();
-  // });
 
   test('Create User with valid credentials', async ({ request }) => {
     user = new UserController(request);

@@ -20,3 +20,22 @@ export type User = {
   token?: string;
   password?: string;
 };
+
+export type Comment = {
+  comment: {
+    body: string
+  }
+}
+
+export type CommentResponse = {
+  comment: {
+    id: string;
+    createdAt: string;
+    body: string;
+    author: {
+      username: string;
+      image: string;
+      following: boolean;
+    };
+  };
+}
