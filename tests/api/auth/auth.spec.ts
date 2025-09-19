@@ -29,4 +29,25 @@ test.describe.serial('Auth', () => {
     const responseBody = await response.json();
     expect(responseBody.user).toBeDefined();
   });
+
+  // Parameterized test for different invalid login scenarios
+  const invalidLoginData = [
+    { scenario: 'wrong password', email: data.email, password: 'wrongpassword' },
+    { scenario: 'non-existent user', email: 'nonexistent@example.com', password: 'password123' },
+    { scenario: 'empty email', email: '', password: data.password }
+  ];
+
+  invalidLoginData.forEach((testData) => {
+    test(`LWIO-044: Login fails with ${testData.scenario}`, async ({ request }) => {
+      const userController = new UserController(request);
+
+      const response = await userController.login({
+        username: '',
+        email: testData.email,
+        password: testData.password
+      });
+
+      expect(response.status()).toBe(422);
+    });
+  });
 });

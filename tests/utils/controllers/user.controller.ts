@@ -30,4 +30,10 @@ export class UserController extends BaseApiClient {
     if (!authToken) throw new Error('Token required');
     return this.authGet('user/', authToken);
   }
+
+  async update(userInfo: Partial<User>) {
+    const authToken = this.token;
+    if (!authToken) throw new Error('Token required');
+    return this.authPut('user/', { user: userInfo }, authToken);
+  }
 }
