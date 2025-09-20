@@ -1,90 +1,177 @@
-⎿ Comprehensive API Test Automation Project Plan with Playwright
+# 🚀 Conduit API Test Automation
 
-    Stage 1: Foundation Enhancement & Setup (Current → Improved)
+## 📋 Project Description
 
-    What's already done: ✅ Basic Playwright setup, TypeScript config, ESLint, basic auth tests
-    Next steps:
-    1. Environment Management
-      - Create environment files for different stages (dev, staging, prod)
-      - Set up environment-specific configuration
-      - Add secure credential management
-    2. Project Structure Organization
-      - Create organized folder structure (utils, fixtures, data, types)
-      - Set up test data management
-      - Create reusable API client helpers
+Comprehensive API test automation suite for the [Conduit](https://demo.learnwebdriverio.com) blogging platform built with **Playwright** and **TypeScript**. This project implements the API Client pattern with fixtures, parameterized tests, and CI/CD integration.
 
-    Stage 2: Core Testing Infrastructure
+## 🎯 Purpose
 
-    3. API Client & Request Helpers
-      - Build centralized API request wrapper
-      - Create authentication utilities
-      - Implement request/response logging
-      - Add retry mechanisms and error handling
-    4. Test Data Management
-      - Set up test data factories using Faker.js
-      - Create data cleanup utilities
-      - Implement test isolation strategies
-    5. Schema Validation & Response Validation
-      - Add JSON schema validation using Joi
-      - Create response validation utilities
-      - Implement data integrity checks
+This project demonstrates modern API testing practices by:
+- **Automated testing** of REST API endpoints
+- **Quality assurance** for blog platform functionality
+- **CI/CD integration** for continuous testing
+- **Learning tool** for API test automation best practices
 
-    Stage 3: Comprehensive Test Suite Development
+## 🔧 Tasks Covered
 
-    6. Authentication & Authorization Tests
-      - User registration with various scenarios
-      - Login/logout functionality
-      - Token management and refresh
-      - Access control validation
-    7. CRUD Operations Testing
-      - Articles (Create, Read, Update, Delete)
-      - Comments management
-      - User profiles
-      - Tags and categories
-    8. Advanced API Testing Scenarios
-      - Pagination testing
-      - Search and filtering
-      - Rate limiting validation
-      - Error handling scenarios
-      - Edge cases and boundary testing
+The test suite covers all core API functionality:
 
-    Stage 4: Quality Assurance & Reporting
+### ✅ **Users**
+- User registration and creation
+- User authentication (login/logout)
+- User profile management and editing
 
-    9. Test Reporting & Documentation
-      - Enhanced HTML reporting
-      - Test execution metrics
-      - API coverage analysis
-      - Performance metrics tracking
-    10. CI/CD Integration
-      - GitHub Actions workflow setup
-      - Test execution on multiple environments
-      - Automated test result notifications
-      - Test stability monitoring
+### ✅ **Articles**
+- Article CRUD operations (Create, Read, Update, Delete)
+- Article search and filtering
+- Search by tags functionality
+- Pagination support
 
-    Stage 5: Advanced Features & Maintenance
+### ✅ **Favourite Articles**
+- Add articles to favourites
+- Remove articles from favourites
 
-    11. Performance & Load Testing
-      - Response time validation
-      - Concurrent user simulation
-      - API performance benchmarking
-    12. Security Testing
-      - Input validation testing
-      - SQL injection prevention
-      - XSS protection validation
-      - Authentication security checks
-    13. Monitoring & Maintenance
-      - Test stability monitoring
-      - Flaky test detection
-      - Regular maintenance procedures
-      - Documentation updates
+### ✅ **Comments**
+- Add comments to articles
+- Delete own comments
 
-    Implementation Approach
+### ✅ **Tags**
+- Search articles by tags
+- Tag-based filtering
 
-    - Incremental Development: Each stage builds upon the previous
-    - Test-Driven: Write tests first, then utilities
-    - Documentation: Comprehensive README and code documentation
-    - Best Practices: Following industry standards and patterns
-    - Reusability: Creating modular, reusable components
+## 📊 Implementation Plan
 
-    This plan will transform your current basic setup into a enterprise-ready API testing framework with
-    comprehensive coverage, robust reporting, and maintainable code structure.
+### ✅ **Phase 1: Foundation** - COMPLETED
+- [x] Playwright setup with TypeScript
+- [x] API Client pattern implementation
+- [x] Fixtures and test data management
+- [x] Controllers for all endpoints
+
+### ✅ **Phase 2: Core Testing** - COMPLETED
+- [x] Authentication tests (create, login, edit)
+- [x] Article CRUD operations
+- [x] Comment management
+- [x] Favourite functionality
+- [x] Search and filtering
+
+### ✅ **Phase 3: Quality & CI** - COMPLETED
+- [x] Parameterized tests
+- [x] GitHub Actions CI/CD
+- [x] Test reporting and artifacts
+- [x] Linting and type checking
+
+## 🛠️ Technical Stack
+
+- **Testing Framework:** Playwright
+- **Language:** TypeScript
+- **Test Data:** Faker.js
+- **CI/CD:** GitHub Actions
+- **Code Quality:** ESLint, Prettier
+- **API:** Conduit REST API
+
+## 📁 Project Structure
+
+```
+├── tests/
+│   ├── api/                    # API test suites
+│   │   ├── auth/              # Authentication tests
+│   │   ├── article/           # Article CRUD & search tests
+│   │   ├── comments/          # Comment management tests
+│   │   └── favourite/         # Favourite functionality tests
+│   ├── data/                  # Test data factories
+│   ├── fixtures/              # Playwright fixtures
+│   ├── types/                 # TypeScript type definitions
+│   └── utils/
+│       └── controllers/       # API client controllers
+├── .github/workflows/         # CI/CD configuration
+├── playwright.config.ts       # Playwright configuration
+└── package.json              # Dependencies and scripts
+```
+
+## 🚀 How to Use This Project
+
+### Prerequisites
+- Node.js 20+
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd qa-dojo-conduit-api-ta
+
+# Install dependencies
+npm install
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with UI mode
+npm run test:ui
+
+# Run tests in headed mode
+npm run test:headed
+
+# Generate and view HTML report
+npm run report
+```
+
+### Code Quality
+
+```bash
+# Run linting
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Type checking
+npm run type-check
+```
+
+### CI/CD
+
+Tests automatically run on:
+- Push to `main` or `master` branch
+- Pull requests to `main` or `master` branch
+
+View results in the **Actions** tab of your GitHub repository.
+
+### Test Tags
+
+Tests are organized with tags for selective execution:
+
+- `@smoke` - Core functionality tests
+- `@regression` - Full regression suite
+- `@positive` - Happy path scenarios
+
+Run specific tags:
+```bash
+npx playwright test --grep "@smoke"
+```
+
+## 📈 Test Coverage
+
+- **Users:** Registration, Login, Profile Management
+- **Articles:** CRUD, Search, Pagination, Tags
+- **Comments:** Add, Delete
+- **Favourites:** Add, Remove
+- **Authentication:** Token-based auth flows
+- **Error Scenarios:** Validation, 4xx/5xx responses
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+---
+
+**Built with ❤️ for learning API test automation**
