@@ -6,18 +6,20 @@ test.describe('Get Article API', () => {
   let slug: string;
   let resp: APIResponse;
   let authorUsername: string;
+  let testTag: string = 'test-search-tag';
 
   test.beforeAll(async ({ article, user }) => {
     const userResponse = await user.getUserInfo();
-
     const userData = await userResponse.json();
     authorUsername = userData.user.username;
-    resp = await article.create(
-      validArticle({
-        tagList: ['yolo'],
-      })
-    );
-    slug = (await resp.json()).article.slug as string;
+
+    const articleData = {
+      ...validArticle(),
+      tagList: [testTag, 'automation'],
+    };
+    const createResponse = await article.create(articleData);
+    const responseBody = await createResponse.json();
+    slug = responseBody.article.slug;
   });
 
   test(
@@ -74,7 +76,12 @@ test.describe('Get Article API', () => {
 
       expect(response.status()).toBe(200);
       const responseBody = await response.json();
-      expect(responseBody.articles[0].author.username).toEqual(authorUsername);
+
+      const foundArticle = responseBody.articles.find(
+        (art: any) => art.slug === slug
+      );
+      expect(foundArticle).toBeDefined();
+      expect(foundArticle.author.username).toEqual(authorUsername);
     }
   );
 
@@ -84,12 +91,17 @@ test.describe('Get Article API', () => {
       tag: ['@smoke', '@regression', '@positive'],
     },
     async ({ article }) => {
-      const response = await article.getList({ tag: 'yolo' });
+      const response = await article.getList({ tag: testTag });
 
       expect(response.status()).toBe(200);
       const responseBody = await response.json();
-      expect(responseBody).toHaveProperty('articles');
-      expect(responseBody.articles[0].tagList[0]).toBe('yolo');
+
+      expect(responseBody.articles).toBeDefined();
+      const foundArticle = responseBody.articles.find(
+        (art: any) => art.slug === slug
+      );
+      expect(foundArticle).toBeDefined();
+      expect(foundArticle.tagList).toContain(testTag);
     }
   );
 
@@ -100,15 +112,20 @@ test.describe('Get Article API', () => {
     },
     async ({ article }) => {
       const response = await article.getList({
-        tag: 'yolo',
+        tag: testTag,
         author: authorUsername,
       });
 
       expect(response.status()).toBe(200);
       const responseBody = await response.json();
-      expect(responseBody).toHaveProperty('articles');
-      expect(responseBody.articles[0].author.username).toEqual(authorUsername);
-      expect(responseBody.articles[0].tagList[0]).toBe('yolo');
+      expect(responseBody).toBeDefined();
+
+      const foundArticle = responseBody.articles.find(
+        (art: any) => art.slug === slug
+      );
+      expect(foundArticle).toBeDefined();
+      expect(foundArticle.tagList).toContain(testTag);
+      expect(foundArticle.author.username).toEqual(authorUsername);
     }
   );
 });
