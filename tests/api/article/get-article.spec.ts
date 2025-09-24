@@ -1,5 +1,7 @@
 import { validArticle } from '@/data/article.data';
 import { test } from '@/fixtures/fixtures';
+import { articleResponseSchema } from '@/schemas/schemas';
+import { validateWithSchema } from '@/utils/helpers/validate-schema';
 import { APIResponse, expect } from '@playwright/test';
 
 test.describe('Get Article API', () => {
@@ -20,6 +22,19 @@ test.describe('Get Article API', () => {
     const createResponse = await article.create(articleData);
     const responseBody = await createResponse.json();
     slug = responseBody.article.slug;
+  });
+
+  test('LWIO-50 Article response schema validation', async ({ article }) => {
+    const response = await article.getBySlug(slug);
+
+    expect(response.status()).toBe(200);
+    const responseBody = await response.json();
+    const { isValid, errors } = validateWithSchema(
+      responseBody.article,
+      articleResponseSchema
+    );
+    expect(isValid).toBe(true);
+    if (!isValid) console.log(errors);
   });
 
   test(
