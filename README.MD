@@ -53,4 +53,4 @@ In a live demo run on 2 November 2026, 31 of 40 tests passed. Seven cases expose
 
 ## GitHub Actions
 
-Pushes to `main` and pull requests run lint, TypeScript and test discovery. For a full integration run, configure the repository Actions variable `CONDUIT_BASE_URL` for an authorized test environment, then select **Actions → Conduit API checks → Run workflow**. The integration log lists case titles and pass/fail results. To inspect HTTP failures in detail, run the case locally. [Workflow](.github/workflows/playwright.yml)
+Pushes to `main` and pull requests run lint, TypeScript and test discovery. For a full integration run, configure the repository Actions variable `CONDUIT_BASE_URL` for an authorized test environment, then select **Actions → Conduit API checks → Run workflow**. The integration log lists case titles and pass/fail results. To inspect HTTP failures in detail, run the case locally. [Workflow](.github/workflows/conduit-checks.yml)
