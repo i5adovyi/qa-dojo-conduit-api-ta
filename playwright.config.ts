@@ -1,50 +1,31 @@
 import { defineConfig } from '@playwright/test';
 import dotenv from 'dotenv';
-import path from 'path';
 
-/**
- * Load environment variables based on TEST_ENV
- */
-const testEnv = process.env.TEST_ENV || 'local';
-const envFile = `.env.${testEnv}`;
-dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+dotenv.config({ path: `.env.${process.env.TEST_ENV || 'local'}` });
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
+// Relative request URLs must resolve under the API path.
+const apiUrl = new URL(
+  process.env.CONDUIT_BASE_URL || 'http://localhost:3000/api/'
+);
+if (
+  !['http:', 'https:'].includes(apiUrl.protocol) ||
+  apiUrl.username ||
+  apiUrl.password ||
+  apiUrl.search ||
+  apiUrl.hash
+) {
+  throw new Error(
+    'CONDUIT_BASE_URL must be an HTTP(S) API root without credentials, query or fragment.'
+  );
+}
+if (!apiUrl.pathname.endsWith('/')) apiUrl.pathname += '/';
+
 export default defineConfig({
-  testDir: './tests',
-  /* Run tests in files in parallel */
-  fullyParallel: true,
-  /* Fail the build on CI if you accidentally left test.only in the source code. */
+  testDir: './tests/api',
+  testMatch: '**/*.spec.ts',
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : 1,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
-  /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
-  use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://localhost:3000',
-  },
-
-  /* Configure projects for API testing only */
-  projects: [
-    {
-      name: 'Conduit',
-      testMatch: '**/*.spec.ts',
-      use: {
-        baseURL: 'https://conduit-api.learnwebdriverio.com/api/',
-      },
-    },
-  ],
-
-  /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  workers: 1,
+  retries: 0,
+  reporter: [['list'], ['html', { open: 'never' }]],
+  projects: [{ name: 'Conduit', use: { baseURL: apiUrl.href } }],
 });

@@ -1,227 +1,178 @@
+import { randomUUID } from 'node:crypto';
 import { invalidArticle, validArticle } from '@/data/article.data';
 import { test } from '@/fixtures/fixtures';
-import { Article } from '@/types/types';
 import { expect } from '@playwright/test';
 
-test.describe('Update Article API', () => {
-  let createdArticle: Article;
-  let slug: string;
-
-  test.beforeEach(async ({ article }) => {
-    const response = await article.create(validArticle());
-    createdArticle = (await response.json()).article;
-    slug = createdArticle.slug as string;
-  });
-
+test.describe('Update articles', { tag: '@regression' }, () => {
   test(
-    'LWIO-013: Update article with all required fields',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      let payload = validArticle();
-      const response = await article.update(slug, payload);
-
+    'LWIO-013: Update all article fields',
+    { tag: ['@smoke', '@positive'] },
+    async ({ article, seededArticle }) => {
+      const payload = validArticle();
+      const response = await article.update(seededArticle.slug, payload);
       expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-
-      expect(responseBody.article).toMatchObject({
+      const updated = (await response.json()).article;
+      expect(updated).toMatchObject({
+        ...payload,
         slug: expect.any(String),
-        title: payload.title,
-        description: payload.description,
-        body: payload.body,
-        tagList: payload.tagList,
-        createdAt: expect.any(String),
+        createdAt: seededArticle.createdAt,
         updatedAt: expect.any(String),
-        favorited: expect.any(Boolean),
-        favoritesCount: expect.any(Number),
-        author: {
-          username: expect.any(String),
+        favorited: false,
+        favoritesCount: 0,
+        author: expect.objectContaining({
+          username: seededArticle.author.username,
           image: expect.any(String),
           following: expect.any(Boolean),
-        },
+        }),
       });
+
+      const read = await article.getBySlug(updated.slug);
+      expect(read.status()).toBe(200);
+      expect((await read.json()).article).toMatchObject(payload);
     }
   );
 
-  test(
-    'LWIO-014: Update article title only',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      let payload = validArticle({
-        title: `Updated title ${Date.now()}`,
-      });
-      const response = await article.update(slug, payload);
+  for (const [id, field] of [
+    ['014', 'title'],
+    ['015', 'description'],
+    ['016', 'body'],
+    ['017', 'tagList'],
+  ] as const) {
+    test(
+      `LWIO-${id}: Change only the article's ${field}`,
+      { tag: '@positive' },
+      async ({ article, seededArticle }) => {
+        const { title, description, body, tagList, slug } = seededArticle;
+        // This PUT contract expects the full editable payload. Only the selected value changes.
+        const newValue = validArticle({ title: `updated-${randomUUID()}` })[
+          field
+        ];
+        expect(newValue).not.toEqual(seededArticle[field]);
+        const payload = {
+          title,
+          description,
+          body,
+          tagList,
+          [field]: newValue,
+        };
+        const response = await article.update(slug, payload);
+        expect(response.status()).toBe(200);
+        const updated = (await response.json()).article;
+        expect(updated).toMatchObject(payload);
 
-      expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-
-      expect(responseBody.article.title).toEqual(payload.title);
-    }
-  );
-
-  test(
-    'LWIO-015: Update article description only',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      let payload = validArticle({
-        description: `Updated description ${Date.now()}`,
-      });
-      const response = await article.update(slug, payload);
-
-      expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-
-      expect(responseBody.article.description).toEqual(payload.description);
-    }
-  );
-
-  test(
-    'LWIO-016: Update article body only',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      let payload = validArticle({
-        body: `Updated body ${Date.now()}`,
-      });
-      const response = await article.update(slug, payload);
-
-      expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-
-      expect(responseBody.article.body).toEqual(payload.body);
-    }
-  );
+        const read = await article.getBySlug(updated.slug);
+        expect(read.status()).toBe(200);
+        expect((await read.json()).article).toMatchObject(payload);
+      }
+    );
+  }
 
   test(
-    'LWIO-017: Update article taglist',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
+    'LWIO-018: Updating an unknown article returns 404',
+    { tag: '@negative' },
     async ({ article }) => {
-      let payload = validArticle({
-        tagList: ['qaDojo', 'bestCourseEver', 'apiTestingIsGreatAgain'],
-      });
-      const response = await article.update(slug, payload);
-
-      expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-
-      expect(responseBody.article.tagList).toEqual(payload.tagList);
-    }
-  );
-
-  test(
-    'LWIO-018: Update non existing article returns 404',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      let slug = 'abc123';
-      const response = await article.update(slug, validArticle());
-
+      const response = await article.update(
+        `missing-${randomUUID()}`,
+        validArticle()
+      );
       expect(response.status()).toBe(404);
-      let responseBody = await response.text();
-
-      expect(responseBody).toEqual('Not Found');
+      expect(await response.text()).toBe('Not Found');
     }
   );
 
   test(
-    'LWIO-020: Update with empty title returns 422',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      let payload = validArticle({
-        title: '',
-      });
-      const response = await article.update(slug, payload);
-
-      expect(response.status()).toBe(422);
-      const responseBody = await response.json();
-
-      expect(responseBody.errors.message).toEqual('Title cannot be empty');
-    }
-  );
-
-  test(
-    'LWIO-021: Update with empty body returns 422',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      let payload = validArticle({
-        body: '',
-      });
-      const response = await article.update(slug, payload);
-
-      expect(response.status()).toBe(422);
-      const responseBody = await response.json();
-
-      expect(responseBody.errors.message).toEqual('Content cannot be empty');
-    }
-  );
-
-  test(
-    'LWIO-022: Update with missing title returns 422',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      let payload = invalidArticle({}, ['title']);
-      const response = await article.update(slug, payload);
-
-      expect(response.status()).toBe(422);
-      const responseBody = await response.json();
-
-      expect(responseBody.errors.message).toEqual(
-        'Missing requred property Title'
-      );
-    }
-  );
-
-  test(
-    'LWIO-023: Update with missing body returns 422',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      let payload = invalidArticle({}, ['title']);
-      const response = await article.update(slug, payload);
-
-      expect(response.status()).toBe(422);
-      const responseBody = await response.json();
-
-      expect(responseBody.errors.message).toEqual(
-        'Missing requred property Body'
-      );
-    }
-  );
-
-  test(
-    'LWIO-024: Update for Unauthorized user returns 401',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ request }) => {
-      let payload = validArticle();
-      const invalidToken = 'invalid-token-123';
+    'LWIO-019: Another user cannot update an owned article',
+    { tag: '@negative' },
+    async ({ request, article, seededArticle, registeredUser }) => {
+      const { slug, title, description, body, tagList } = seededArticle;
       const response = await request.put(`articles/${slug}`, {
-        data: { article: validArticle() },
-        headers: {
-          Authorization: `Token ${invalidToken}`,
+        data: {
+          article: {
+            title,
+            description,
+            tagList,
+            body: `unauthorized-${randomUUID()}`,
+          },
         },
+        headers: { Authorization: `Token ${registeredUser.token}` },
       });
+      expect(response.status()).toBe(403);
+      const read = await article.getBySlug(slug);
+      expect(read.status()).toBe(200);
+      expect((await read.json()).article).toMatchObject({
+        slug,
+        title,
+        description,
+        body,
+        tagList,
+      });
+    }
+  );
 
+  for (const [id, field, message] of [
+    ['020', 'title', 'Title cannot be empty'],
+    ['021', 'body', 'Content cannot be empty'],
+  ] as const) {
+    test(
+      `LWIO-${id}: Updating with an empty ${field} returns 422`,
+      { tag: '@negative' },
+      async ({ article, seededArticle }) => {
+        const response = await article.update(
+          seededArticle.slug,
+          validArticle({ [field]: '' })
+        );
+        expect(response.status()).toBe(422);
+        expect((await response.json()).errors.message).toBe(message);
+      }
+    );
+  }
+
+  for (const [id, field, message] of [
+    ['022', 'title', 'Missing requred property Title'],
+    ['023', 'body', 'Missing requred property Body'],
+  ] as const) {
+    test(
+      `LWIO-${id}: Updating without ${field} returns 422`,
+      { tag: '@negative' },
+      async ({ article, seededArticle }) => {
+        const response = await article.update(
+          seededArticle.slug,
+          invalidArticle({}, [field])
+        );
+        expect(response.status()).toBe(422);
+        expect((await response.json()).errors.message).toBe(message);
+      }
+    );
+  }
+
+  test(
+    'LWIO-024: Invalid token cannot update the article',
+    { tag: '@negative' },
+    async ({ request, article, seededArticle }) => {
+      const { slug, title, body, description, tagList } = seededArticle;
+      const response = await request.put(`articles/${slug}`, {
+        data: {
+          article: {
+            title,
+            description,
+            tagList,
+            body: `unauthorized-${randomUUID()}`,
+          },
+        },
+        headers: { Authorization: 'Token invalid-token' },
+      });
       expect(response.status()).toBe(401);
-      const body = await response.json();
-      expect(body.errors).toBeDefined();
+      expect((await response.json()).errors).toBeDefined();
+
+      const read = await article.getBySlug(slug);
+      expect(read.status()).toBe(200);
+      expect((await read.json()).article).toMatchObject({
+        slug,
+        title,
+        body,
+        description,
+        tagList,
+      });
     }
   );
 });

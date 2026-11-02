@@ -1,9 +1,11 @@
-import { faker } from '@faker-js/faker';
+import { randomUUID } from 'node:crypto';
+import type { Registration } from '@/types/types';
 
-export const userInfo = () => {
+export function userInfo(): Registration {
+  const username = 'qa' + randomUUID().replaceAll('-', '').slice(0, 16);
   return {
-    email: faker.internet.email().toLowerCase(),
-    password: 'qatest123!',
-    username: `${faker.person.firstName().toLowerCase()}qadojo`,
+    username,
+    email: `${username}@example.com`,
+    password: randomUUID(),
   };
-};
+}

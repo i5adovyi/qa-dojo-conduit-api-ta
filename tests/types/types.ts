@@ -1,41 +1,25 @@
 export type Article = {
-  slug?: string;
   title: string;
   description: string;
   body: string;
   tagList?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-  favorited?: boolean;
-  favoritesCount?: number;
-  author?: User;
 };
 
-export type User = {
-  id?: number;
+export type PublishedArticle = Required<Article> & {
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  favorited: boolean;
+  favoritesCount: number;
+  author: { username: string; image: string | null; following: boolean };
+};
+
+export type Registration = {
   username: string;
   email: string;
-  bio?: string;
-  image?: string;
-  token?: string;
-  password?: string;
+  password: string;
 };
 
 export type Comment = {
-  comment: {
-    body: string
-  }
-}
-
-export type CommentResponse = {
-  comment: {
-    id: string;
-    createdAt: string;
-    body: string;
-    author: {
-      username: string;
-      image: string;
-      following: boolean;
-    };
-  };
-}
+  comment: { body: string };
+};

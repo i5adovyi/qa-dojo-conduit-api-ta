@@ -1,55 +1,56 @@
-import { validArticle } from '@/data/article.data';
 import { commentData } from '@/data/comment.data';
 import { test } from '@/fixtures/fixtures';
-import { APIResponse, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
 
-test.describe('Favourite articles -  Article API', () => {
-  let slug: string;
-  let resp: APIResponse;
+test.describe('Article comments', { tag: ['@regression', '@positive'] }, () => {
+  test(
+    'LWIO-037: Add a comment to an article',
+    { tag: '@smoke' },
+    async ({ comment, seededArticle }) => {
+      const { slug } = seededArticle;
+      const payload = commentData();
+      const add = await comment.add(slug, payload);
+      expect(add.status()).toBe(200);
+      const created = (await add.json()).comment;
+      expect(created.id).toEqual(expect.anything());
+      expect(created.body).toBe(payload.comment.body);
 
-  test.beforeAll(async ({ article, user }) => {
-    const userResponse = await user.getUserInfo();
-    resp = await article.create(validArticle());
-    slug = (await resp.json()).article.slug as string;
+      const read = await comment.list(slug);
+      expect(read.status()).toBe(200);
+      expect((await read.json()).comments).toContainEqual(
+        expect.objectContaining({
+          id: created.id,
+          body: payload.comment.body,
+          author: expect.objectContaining({
+            username: seededArticle.author.username,
+          }),
+        })
+      );
+    }
+  );
+
+  test('LWIO-038: Delete an owned comment', async ({
+    comment,
+    seededArticle,
+  }) => {
+    const { slug } = seededArticle;
+    const add = await comment.add(slug, commentData());
+    expect(add.status()).toBe(200);
+    const { id } = (await add.json()).comment;
+    expect(id).toEqual(expect.anything());
+
+    const before = await comment.list(slug);
+    expect(before.status()).toBe(200);
+    expect((await before.json()).comments).toContainEqual(
+      expect.objectContaining({ id })
+    );
+
+    const remove = await comment.delete(slug, id);
+    expect(remove.status()).toBe(204);
+    const after = await comment.list(slug);
+    expect(after.status()).toBe(200);
+    const { comments } = await after.json();
+    expect(comments).toEqual(expect.any(Array));
+    expect(comments).not.toContainEqual(expect.objectContaining({ id }));
   });
-
-  test(
-    'LWIO-037: Add comment to article',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ comment }) => {
-      let payload = commentData();
-      const response = await comment.add(slug, payload);
-
-      expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-
-      expect(responseBody).toHaveProperty('comment');
-      expect(responseBody.comment.body).toEqual(payload.comment.body);
-    }
-  );
-
-  test(
-    'LWIO-038: Delete own comment',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ comment }) => {
-      // Create comment for article
-      let payload = commentData();
-      const createResponse = await comment.add(slug, payload);
-
-      expect(createResponse.status()).toBe(200);
-      const createResponseBody = await createResponse.json();
-      const commentId = createResponseBody.comment.id;
-
-      expect(createResponseBody).toHaveProperty('comment');
-      expect(createResponseBody.comment.body).toEqual(payload.comment.body);
-
-      // Delete the comment
-      const deleteResponse = await comment.delete(slug, commentId);
-      expect(deleteResponse.status()).toBe(204);
-    }
-  );
 });

@@ -1,177 +1,56 @@
-# 🚀 Conduit API Test Automation
+# Conduit API test automation
 
-## 📋 Project Description
+A TypeScript and Playwright API test suite for the Conduit blogging platform, developed as the final project for the **QA Dojo API Test Automation course**. It exercises registration, login, profile updates, article CRUD and filtering, comments and favourites through HTTP requests. The expected responses follow the course implementation.
 
-Comprehensive API test automation suite for the [Conduit](https://demo.learnwebdriverio.com) blogging platform built with **Playwright** and **TypeScript**. This project implements the API Client pattern with fixtures, parameterized tests, and CI/CD integration.
+## Try two read-only tests
 
-## 🎯 Purpose
+Install the suite from the repository root with Node.js 22 (22.13 or later) or Node.js 24+ and npm.
 
-This project demonstrates modern API testing practices by:
-- **Automated testing** of REST API endpoints
-- **Quality assurance** for blog platform functionality
-- **CI/CD integration** for continuous testing
-- **Learning tool** for API test automation best practices
-
-## 🔧 Tasks Covered
-
-The test suite covers all core API functionality:
-
-### ✅ **Users**
-- User registration and creation
-- User authentication (login/logout)
-- User profile management and editing
-
-### ✅ **Articles**
-- Article CRUD operations (Create, Read, Update, Delete)
-- Article search and filtering
-- Search by tags functionality
-- Pagination support
-
-### ✅ **Favourite Articles**
-- Add articles to favourites
-- Remove articles from favourites
-
-### ✅ **Comments**
-- Add comments to articles
-- Delete own comments
-
-### ✅ **Tags**
-- Search articles by tags
-- Tag-based filtering
-
-## 📊 Implementation Plan
-
-### ✅ **Phase 1: Foundation** - COMPLETED
-- [x] Playwright setup with TypeScript
-- [x] API Client pattern implementation
-- [x] Fixtures and test data management
-- [x] Controllers for all endpoints
-
-### ✅ **Phase 2: Core Testing** - COMPLETED
-- [x] Authentication tests (create, login, edit)
-- [x] Article CRUD operations
-- [x] Comment management
-- [x] Favourite functionality
-- [x] Search and filtering
-
-### ✅ **Phase 3: Quality & CI** - COMPLETED
-- [x] Parameterized tests
-- [x] GitHub Actions CI/CD
-- [x] Test reporting and artifacts
-- [x] Linting and type checking
-
-## 🛠️ Technical Stack
-
-- **Testing Framework:** Playwright
-- **Language:** TypeScript
-- **Test Data:** Faker.js
-- **CI/CD:** GitHub Actions
-- **Code Quality:** ESLint, Prettier
-- **API:** Conduit REST API
-
-## 📁 Project Structure
-
-```
-├── tests/
-│   ├── api/                    # API test suites
-│   │   ├── auth/              # Authentication tests
-│   │   ├── article/           # Article CRUD & search tests
-│   │   ├── comments/          # Comment management tests
-│   │   └── favourite/         # Favourite functionality tests
-│   ├── data/                  # Test data factories
-│   ├── fixtures/              # Playwright fixtures
-│   ├── types/                 # TypeScript type definitions
-│   └── utils/
-│       └── controllers/       # API client controllers
-├── .github/workflows/         # CI/CD configuration
-├── playwright.config.ts       # Playwright configuration
-└── package.json              # Dependencies and scripts
+```sh
+npm ci
 ```
 
-## 🚀 How to Use This Project
+Run the two anonymous checks against the course demo from PowerShell or Command Prompt.
 
-### Prerequisites
-- Node.js 20+
-- npm or yarn
-
-### Installation
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd qa-dojo-conduit-api-ta
-
-# Install dependencies
-npm install
+```powershell
+cmd /d /c "set CONDUIT_BASE_URL=https://conduit-api.learnwebdriverio.com/api/&&npm run test:read"
 ```
 
-### Running Tests
+On macOS or Linux use the equivalent shell command.
 
-```bash
-# Run all tests
+```sh
+CONDUIT_BASE_URL=https://conduit-api.learnwebdriverio.com/api/ npm run test:read
+```
+
+One test checks the shape and size of a paginated article list. The other requests a unique missing slug and expects HTTP 404. Both use anonymous GET requests. The API suite runs without installing a browser. Open the local HTML results with `npm run report`.
+
+## Run the full suite
+
+Copy `.env.example` to `.env.local` and set `CONDUIT_BASE_URL` to a compatible test instance where you can create data. An exported environment variable takes precedence. The default is `http://localhost:3000/api/`, and the backend must be running separately.
+
+```sh
 npm test
-
-# Run tests with UI mode
-npm run test:ui
-
-# Run tests in headed mode
-npm run test:headed
-
-# Generate and view HTML report
-npm run report
 ```
 
-### Code Quality
+The full run registers temporary identities and changes data. The worker keeps its account token in memory. Each article fixture tracks the slugs it creates, including changes after a rename, and deletes its articles during teardown. Profile updates use a separate account. Registered accounts remain on the target because the course API has no account-deletion endpoint.
 
-```bash
-# Run linting
-npm run lint
+| Command | Purpose |
+| --- | --- |
+| `npm run lint` | Check TypeScript and Playwright coding rules |
+| `npm run type-check` | Compile-check the suite |
+| `npm test -- --list` | List cases without contacting the API |
+| `npm test -- --grep @smoke` | Exercise a short set of write and read scenarios |
+| `npm test -- --grep LWIO-023` | Run the missing-body update regression |
 
-# Fix linting issues
-npm run lint:fix
+## What to inspect
 
-# Type checking
-npm run type-check
-```
+- **Updates and permissions.** Single-field update tests keep the other values fixed, then fetch the article again. The ownership test attempts an update with a second account and checks that the original content survives. [Update tests](tests/api/article/put-article.spec.ts)
+- **Search and schema.** The suite checks every returned match and also sends queries that must return no matches. An Ajv schema checks the detail response, including timestamps and author fields. [Read and filter tests](tests/api/article/get-article.spec.ts)
+- **Favourites and comments.** The tests observe the stored favourite flag and count through a fresh GET. The comment deletion case verifies that the target ID exists before deletion and disappears afterwards. [Favourites](tests/api/favourite/favourites.spec.ts) · [Comments](tests/api/comments/comments.spec.ts)
+- **Test setup.** Playwright fixtures manage identities and per-test articles. Small controllers wrap the HTTP calls, while the specs define the expected behavior. [Fixtures](tests/fixtures/fixtures.ts) · [Controllers](tests/utils/controllers)
 
-### CI/CD
+In a live demo run on 2 November 2026, 31 of 40 tests passed. Seven cases exposed differences in article validation and two exposed unexpected results when filtering by author. The [coverage checklist](documentation/checklist.md#observed-on-the-course-demo) includes the expected and observed behavior for all nine.
 
-Tests automatically run on:
-- Push to `main` or `master` branch
-- Pull requests to `main` or `master` branch
+## GitHub Actions
 
-View results in the **Actions** tab of your GitHub repository.
-
-### Test Tags
-
-Tests are organized with tags for selective execution:
-
-- `@smoke` - Core functionality tests
-- `@regression` - Full regression suite
-- `@positive` - Happy path scenarios
-
-Run specific tags:
-```bash
-npx playwright test --grep "@smoke"
-```
-
-## 📈 Test Coverage
-
-- **Users:** Registration, Login, Profile Management
-- **Articles:** CRUD, Search, Pagination, Tags
-- **Comments:** Add, Delete
-- **Favourites:** Add, Remove
-- **Authentication:** Token-based auth flows
-- **Error Scenarios:** Validation, 4xx/5xx responses
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
----
-
-**Built with ❤️ for learning API test automation**
+Pushes to `main` and pull requests run lint, TypeScript and test discovery. For a full integration run, configure the repository Actions variable `CONDUIT_BASE_URL` for an authorized test environment, then select **Actions → Conduit API checks → Run workflow**. The integration log lists case titles and pass/fail results. To inspect HTTP failures in detail, run the case locally. [Workflow](.github/workflows/conduit-checks.yml)

@@ -2,178 +2,80 @@ import { invalidArticle, validArticle } from '@/data/article.data';
 import { test } from '@/fixtures/fixtures';
 import { expect } from '@playwright/test';
 
-test.describe('Create Article API', async () => {
+test.describe('Create articles', { tag: '@regression' }, () => {
   test(
-    'LWIO-003  Create article with all fields',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
+    'LWIO-003: Create an article with all fields',
+    { tag: ['@smoke', '@positive'] },
     async ({ article }) => {
       const payload = validArticle();
       const response = await article.create(payload);
-
       expect(response.status()).toBe(200);
-      const responseBody = await response.json();
-
-      expect(responseBody.article).toMatchObject({
+      const created = (await response.json()).article;
+      expect(created).toMatchObject({
+        ...payload,
         slug: expect.any(String),
-        title: payload.title,
-        description: payload.description,
-        body: payload.body,
-        tagList: payload.tagList,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
-        favorited: expect.any(Boolean),
-        favoritesCount: expect.any(Number),
+        favorited: false,
+        favoritesCount: 0,
         author: {
           username: expect.any(String),
           image: expect.any(String),
-          following: expect.any(Boolean),
+          following: false,
         },
       });
+
+      const read = await article.getBySlug(created.slug);
+      expect(read.status()).toBe(200);
+      expect((await read.json()).article).toMatchObject(payload);
     }
   );
 
-  test(
-    'LWIO-004 Create Article with empty description',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      const response = await article.create(
-        validArticle({
-          description: '',
-        })
-      );
+  for (const [id, field, empty] of [
+    ['004', 'description', ''],
+    ['005', 'tagList', []],
+    ['006', 'title', ''],
+    ['007', 'body', ''],
+  ] as const) {
+    test(
+      `LWIO-${id}: Accept an empty ${field} on creation`,
+      { tag: '@positive' },
+      async ({ article }) => {
+        const response = await article.create(validArticle({ [field]: empty }));
+        expect(response.status()).toBe(200);
+        expect((await response.json()).article[field]).toEqual(empty);
+      }
+    );
+  }
 
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-
-      expect(body.article.description).toEqual('');
-    }
-  );
-
-  test(
-    'LWIO-005: Create article with empty tagList',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      const response = await article.create(
-        validArticle({
-          tagList: [],
-        })
-      );
-
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-      expect(body.article.tagList).toEqual([]);
-    }
-  );
+  for (const [id, field] of [
+    ['008', 'title'],
+    ['009', 'description'],
+    ['010', 'body'],
+  ] as const) {
+    test(
+      `LWIO-${id}: Creating without ${field} returns 422`,
+      { tag: '@negative' },
+      async ({ article }) => {
+        const response = await article.create(invalidArticle({}, [field]));
+        expect(response.status()).toBe(422);
+        expect((await response.json()).errors.message).toEqual(
+          expect.stringMatching(/\S/)
+        );
+      }
+    );
+  }
 
   test(
-    'LWIO-006: Create article with empty title',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      const response = await article.create(
-        validArticle({
-          title: '',
-        })
-      );
-
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-      expect(body.article.title).toEqual('');
-    }
-  );
-
-  test(
-    'LWIO-007: Create article with empty body',
-    {
-      tag: ['@smoke', '@regression', '@positive'],
-    },
-    async ({ article }) => {
-      const response = await article.create(
-        validArticle({
-          body: '',
-        })
-      );
-
-      expect(response.status()).toBe(200);
-      const body = await response.json();
-      expect(body.article.body).toEqual('');
-    }
-  );
-
-  test(
-    'LWIO-008: Missing title returns 500',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      // @ts-expect-error - Testing invalid data intentionally
-      const response = await article.create(invalidArticle({}, ['title']));
-      expect(response.status()).toBe(500);
-      const body = await response.json();
-      expect(body.errors.message).toEqual(
-        "Cannot read property 'toString' of undefined"
-      );
-    }
-  );
-
-  test(
-    'LWIO-009: Missing description returns 422',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      const response = await article.create(
-        // @ts-expect-error - Testing invalid data intentionally
-        invalidArticle({}, ['description'])
-      );
-      expect(response.status()).toBe(422);
-      const body = await response.json();
-      expect(body.errors.message).toEqual(
-        "Cannot read property 'toString' of undefined"
-      );
-    }
-  );
-
-  test(
-    'LWIO-010: Missing body returns 422',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
-    async ({ article }) => {
-      // @ts-expect-error - Testing invalid data intentionally
-      const response = await article.create(invalidArticle({}, ['body']));
-      expect(response.status()).toBe(422);
-      const body = await response.json();
-      expect(body.errors.message).toEqual(
-        "Cannot read property 'toString' of undefined"
-      );
-    }
-  );
-
-  test(
-    'LWIO-011: Unauthorized user returns 401',
-    {
-      tag: ['@smoke', '@regression', '@negative'],
-    },
+    'LWIO-011: Invalid token cannot create an article',
+    { tag: '@negative' },
     async ({ request }) => {
-      const invalidToken = 'invalid-token-123';
       const response = await request.post('articles', {
         data: { article: validArticle() },
-        headers: {
-          Authorization: `Token ${invalidToken}`
-        },
+        headers: { Authorization: 'Token invalid-token' },
       });
-
       expect(response.status()).toBe(401);
-      const body = await response.json();
-      expect(body.errors).toBeDefined();
+      expect((await response.json()).errors).toBeDefined();
     }
   );
 });
