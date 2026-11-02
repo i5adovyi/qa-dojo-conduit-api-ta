@@ -1,30 +1,34 @@
-import { Comment, CommentResponse } from '@/types/types';
-import { APIRequestContext, APIResponse } from '@playwright/test';
+import type { Comment } from '@/types/types';
+import type { APIRequestContext } from '@playwright/test';
 import { BaseApiClient } from '../base-client';
 
 export class CommentController extends BaseApiClient {
-  baseURL: string;
-  private token: string;
-
-  constructor(request: APIRequestContext, token: string) {
+  constructor(
+    request: APIRequestContext,
+    private readonly token: string
+  ) {
     super(request);
-    this.baseURL = 'articles';
-    this.token = token;
   }
 
-  async add(slug: string, commentData: Comment): Promise<APIResponse> {
-    const authToken = this.token;
-    if (!authToken) throw new Error('Token required');
+  add(slug: string, data: Comment) {
     return this.authPost(
-      `${this.baseURL}/${slug}/comments`,
-      commentData,
-      authToken
+      `articles/${encodeURIComponent(slug)}/comments`,
+      data,
+      this.token
     );
   }
 
-  async delete(slug: string, commentId: string): Promise<APIResponse> {
-    const authToken = this.token;
-    if (!authToken) throw new Error('Token required');
-    return this.authDelete(`${this.baseURL}/${slug}/comments/${commentId}`, authToken);
+  list(slug: string) {
+    return this.authGet(
+      `articles/${encodeURIComponent(slug)}/comments`,
+      this.token
+    );
+  }
+
+  delete(slug: string, commentId: string | number) {
+    return this.authDelete(
+      `articles/${encodeURIComponent(slug)}/comments/${encodeURIComponent(commentId)}`,
+      this.token
+    );
   }
 }

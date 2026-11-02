@@ -1,50 +1,34 @@
 {
-  "name": "qa-dojo-api-practice",
+  "name": "qa-dojo-conduit-api-ta",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "description": "PW Automation TA Dojo API Course",
-  "main": "index.js",
+  "description": "Playwright API tests for the QA Dojo Conduit course project",
+  "author": "Igor Sadovyi",
+  "license": "ISC",
+  "engines": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
   "scripts": {
     "test": "playwright test",
+    "test:read": "playwright test --grep @read-only",
     "report": "playwright show-report",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit"
   },
-  "keywords": [
-    "playwright",
-    "automation",
-    "testing",
-    "typescript",
-    "eslint"
-  ],
-  "author": "Igor Sadovyi",
-  "license": "ISC",
   "devDependencies": {
-    "@eslint/js": "^9.14.0",
-    "@playwright/test": "^1.55.0",
-    "@types/eslint__js": "^8.42.3",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.55.1",
     "@types/node": "^22.9.0",
-    "@typescript-eslint/eslint-plugin": "^7.18.0",
-    "@typescript-eslint/parser": "^7.18.0",
-    "eslint": "^8.57.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-n": "^17.14.0",
-    "eslint-plugin-playwright": "^2.1.0",
-    "eslint-plugin-promise": "^7.1.0",
-    "globals": "^15.11.0",
-    "joi": "^18.0.0",
-    "prettier": "^3.3.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.12.2"
-  },
-  "dependencies": {
-    "@faker-js/faker": "^9.0.0",
-    "ajv": "^8.17.1",
+    "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "dotenv": "^16.4.5",
-    "npm": "^10.9.0"
+    "eslint": "^10.14.0",
+    "eslint-plugin-playwright": "^2.1.0",
+    "globals": "^15.11.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.12.2"
   }
 }

@@ -1,48 +1,57 @@
-import { Article } from '@/types/types';
-import { APIRequestContext } from '@playwright/test';
+import type { Article } from '@/types/types';
+import type { APIRequestContext, APIResponse } from '@playwright/test';
 import { BaseApiClient } from '../base-client';
 
 export class ArticleController extends BaseApiClient {
-  baseURL: string;
-  private token: string;
-  constructor(request: APIRequestContext, token: string) {
+  private readonly createdSlugs = new Set<string>();
+
+  constructor(
+    request: APIRequestContext,
+    private readonly token: string
+  ) {
     super(request);
-    this.baseURL = 'articles';
-    this.token = token;
   }
 
-  async create(articleData: Article) {
-    const authToken = this.token;
-    if (!authToken) throw new Error('Token required');
-    return this.authPost(this.baseURL, { article: articleData }, authToken);
-  }
-
-  async getBySlug(slug: string) {
-    const authToken = this.token;
-    if (authToken) {
-      return this.authGet(`${this.baseURL}/${slug}`, authToken);
-    }
-    return this.request.get(`${this.baseURL}/${slug}`);
-  }
-
-  async update(slug: string, articleData: Partial<Article>) {
-    const authToken = this.token;
-    if (!authToken) throw new Error('Token required');
-    return this.authPut(
-      `${this.baseURL}/${slug}`,
-      { article: articleData },
-      authToken
+  async create(data: Partial<Article>) {
+    const response = await this.authPost(
+      'articles',
+      { article: data },
+      this.token
     );
+    if (response.ok()) this.createdSlugs.add(await this.returnedSlug(response));
+    return response;
+  }
+
+  getBySlug(slug: string) {
+    return this.authGet(`articles/${encodeURIComponent(slug)}`, this.token);
+  }
+
+  async update(slug: string, data: Partial<Article>) {
+    const response = await this.authPut(
+      `articles/${encodeURIComponent(slug)}`,
+      { article: data },
+      this.token
+    );
+    if (response.ok() && this.createdSlugs.has(slug)) {
+      const updatedSlug = await this.returnedSlug(response);
+      this.createdSlugs.delete(slug);
+      this.createdSlugs.add(updatedSlug);
+    }
+    return response;
   }
 
   async delete(slug: string) {
-    const authToken = this.token;
-    if (!authToken) throw new Error('Token required');
-    return this.authDelete(`${this.baseURL}/${slug}`, authToken);
+    const response = await this.authDelete(
+      `articles/${encodeURIComponent(slug)}`,
+      this.token
+    );
+    if (response.ok() || response.status() === 404)
+      this.createdSlugs.delete(slug);
+    return response;
   }
 
-  async getList(
-    options: {
+  getList(
+    params: {
       offset?: number;
       limit?: number;
       author?: string;
@@ -50,16 +59,27 @@ export class ArticleController extends BaseApiClient {
       favorited?: string;
     } = {}
   ) {
-    const params: any = {};
+    return this.request.get('articles', { params });
+  }
 
-    if (options.offset !== undefined) params.offset = options.offset;
-    if (options.limit !== undefined) params.limit = options.limit;
-    if (options.author) params.author = options.author;
-    if (options.tag) params.tag = options.tag;
-    if (options.favorited) params.favorited = options.favorited;
+  async cleanup() {
+    for (const slug of this.createdSlugs) {
+      const response = await this.delete(slug);
+      if (!response.ok() && response.status() !== 404) {
+        throw new Error(
+          `Article cleanup returned HTTP ${response.status()} for ${slug}`
+        );
+      }
+    }
+  }
 
-    return await this.request.get(this.baseURL, {
-      params,
-    });
+  private async returnedSlug(response: APIResponse): Promise<string> {
+    const slug = (await response.json()).article?.slug;
+    if (typeof slug !== 'string' || !slug) {
+      throw new Error(
+        'Cannot track article for cleanup: response is missing its slug'
+      );
+    }
+    return slug;
   }
 }

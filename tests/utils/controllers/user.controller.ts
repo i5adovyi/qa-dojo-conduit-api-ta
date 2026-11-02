@@ -1,39 +1,30 @@
-import { User } from '@/types/types';
-import { APIRequestContext } from '@playwright/test';
+import type { Registration } from '@/types/types';
+import type { APIRequestContext } from '@playwright/test';
 import { BaseApiClient } from '../base-client';
 
 export class UserController extends BaseApiClient {
-  baseURL: string;
-  private token?: string;
-  constructor(request: APIRequestContext, token?: string) {
+  constructor(
+    request: APIRequestContext,
+    private readonly token?: string
+  ) {
     super(request);
-    this.baseURL = 'users';
-    this.token = token;
   }
 
-  async create(userInfo: User) {
-    return await this.request.post(this.baseURL, {
-      data: { user: userInfo },
-    });
+  create(user: Registration) {
+    return this.request.post('users', { data: { user } });
   }
 
-  async login(userInfo: User) {
-    return this.request.post(`${this.baseURL}/login`, {
-      data: {
-        user: userInfo,
-      },
-    });
+  login(user: Pick<Registration, 'email' | 'password'>) {
+    return this.request.post('users/login', { data: { user } });
   }
 
-  async getUserInfo() {
-    const authToken = this.token;
-    if (!authToken) throw new Error('Token required');
-    return this.authGet('user/', authToken);
+  getUserInfo() {
+    if (!this.token) throw new Error('Token required');
+    return this.authGet('user/', this.token);
   }
 
-  async update(userInfo: Partial<User>) {
-    const authToken = this.token;
-    if (!authToken) throw new Error('Token required');
-    return this.authPut('user/', { user: userInfo }, authToken);
+  update(user: { bio?: string; image?: string }) {
+    if (!this.token) throw new Error('Token required');
+    return this.authPut('user/', { user }, this.token);
   }
 }

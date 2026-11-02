@@ -1,10 +1,6 @@
-import { Comment } from '@/types/types';
-import { faker } from '@faker-js/faker';
+import { randomUUID } from 'node:crypto';
+import type { Comment } from '@/types/types';
 
 export function commentData(): Comment {
-  return {
-    comment: {
-      body: faker.lorem.words(10),
-    },
-  };
+  return { comment: { body: `Test comment ${randomUUID()}` } };
 }
